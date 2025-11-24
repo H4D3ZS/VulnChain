@@ -87,10 +87,14 @@ class SQLInjectionTester:
     DB_ERROR_PATTERNS = {
         DatabaseType.MYSQL: [
             r"SQL syntax.*MySQL",
+            r"SQL syntax.*MariaDB",  # Added for MariaDB
             r"Warning.*mysql_.*",
             r"MySQLSyntaxErrorException",
+            r"mysqli_sql_exception",  # Added for mysqli errors
             r"valid MySQL result",
             r"check the manual that corresponds to your MySQL",
+            r"check the manual that corresponds to your MariaDB",  # Added for MariaDB
+            r"error in your SQL syntax",  # Generic SQL syntax error
         ],
         DatabaseType.POSTGRESQL: [
             r"PostgreSQL.*ERROR",

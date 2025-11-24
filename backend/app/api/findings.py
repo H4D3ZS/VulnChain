@@ -140,6 +140,8 @@ async def list_findings(
     """
     List all findings with optional filters.
     
+    Also includes findings from module executions.
+    
     Args:
         workspace_id: Filter by workspace ID
         severity: Filter by severity
@@ -148,7 +150,52 @@ async def list_findings(
     Returns:
         List of findings
     """
+    from app.api.modules import executions_db
+    from app.api.targets import targets_db
+    
     findings = list(findings_db.values())
+    
+    # Convert module execution results to findings
+    for execution_id, execution in executions_db.items():
+        if execution.get("status") == "completed" and execution.get("findings"):
+            target_id = execution.get("target_id")
+            target_url = targets_db[target_id].url if target_id in targets_db else "Unknown"
+            
+            for finding_data in execution["findings"]:
+                # Create a finding from execution result
+                finding_id = f"exec-{execution_id}-{findings.index(finding_data) if finding_data in findings else len(findings)}"
+                
+                # Map severity
+                severity_map = {"critical": "critical", "high": "high", "medium": "medium", "low": "low", "info": "info"}
+                finding_severity = severity_map.get(finding_data.get("severity", "info"), "info")
+                
+                # Build finding
+                finding = {
+                    "finding_id": finding_id,
+                    "workspace_id": workspace_id or "default",
+                    "vulnerability_type": finding_data.get("vulnerability_type", "Unknown"),
+                    "severity": finding_severity,
+                    "title": finding_data.get("vulnerability_type", "Vulnerability Found"),
+                    "description": finding_data.get("description", ""),
+                    "affected_url": target_url,
+                    "proof_of_concept": finding_data.get("payload", ""),
+                    "remediation": finding_data.get("remediation", ""),
+                    "flags": [],
+                    "evidence_ids": [],
+                    "discovered_at": execution.get("started_at", datetime.now().isoformat())
+                }
+                
+                # Add metadata to description
+                if "evidence" in finding_data and finding_data["evidence"]:
+                    finding["description"] += "\n\nEvidence:\n" + "\n".join(f"- {e}" for e in finding_data["evidence"])
+                
+                if "parameter" in finding_data:
+                    finding["proof_of_concept"] = f"Parameter: {finding_data['parameter']}\nPayload: {finding_data.get('payload', '')}"
+                
+                if "confidence" in finding_data:
+                    finding["description"] = f"Confidence: {finding_data['confidence']:.0%}\n\n" + finding["description"]
+                
+                findings.append(finding)
     
     # Apply filters
     if workspace_id:
