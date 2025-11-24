@@ -1,0 +1,88 @@
+{
+  "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+  "name": "HackTheBox - Easy Web Challenge",
+  "target": {
+    "url": "https://example.com",
+    "custom_headers": {
+      "X-API-Key": "demo-key-123",
+      "User-Agent": "VulnChain/1.0"
+    },
+    "proxy": null,
+    "waf_bypass_profile": "cloudflare",
+    "rate_limit": null,
+    "session_id": null,
+    "created_at": "2025-11-23T15:34:42.883303+00:00",
+    "updated_at": "2025-11-23T15:34:42.883304+00:00",
+    "name": null,
+    "description": null
+  },
+  "findings": [
+    {
+      "finding_id": "finding-001",
+      "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+      "vulnerability_type": "SQL Injection",
+      "severity": "critical",
+      "title": "SQL Injection in login form",
+      "description": "The login form is vulnerable to SQL injection via the username parameter.",
+      "affected_url": "https://example.com/login",
+      "proof_of_concept": "Username: ' OR '1'='1' --\nPassword: anything",
+      "remediation": "Use parameterized queries or prepared statements.",
+      "discovered_at": "2025-11-23T15:34:42.884230+00:00",
+      "flags": [
+        "CTF{sql_injection_is_easy}"
+      ],
+      "evidence": []
+    },
+    {
+      "finding_id": "finding-002",
+      "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+      "vulnerability_type": "XSS",
+      "severity": "high",
+      "title": "Reflected XSS in search parameter",
+      "description": "The search parameter reflects user input without sanitization.",
+      "affected_url": "https://example.com/search?q=<script>alert(1)</script>",
+      "proof_of_concept": "<script>alert(document.cookie)</script>",
+      "remediation": "Implement proper output encoding and Content Security Policy.",
+      "discovered_at": "2025-11-23T15:34:42.884606+00:00",
+      "flags": [
+        "CTF{xss_reflected}"
+      ],
+      "evidence": []
+    },
+    {
+      "finding_id": "finding-003",
+      "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+      "vulnerability_type": "Information Disclosure",
+      "severity": "medium",
+      "title": "Exposed .git directory",
+      "description": "The .git directory is publicly accessible.",
+      "affected_url": "https://example.com/.git/",
+      "proof_of_concept": "curl https://example.com/.git/config",
+      "remediation": "Block access to .git directory in web server configuration.",
+      "discovered_at": "2025-11-23T15:34:42.884949+00:00",
+      "flags": [],
+      "evidence": []
+    }
+  ],
+  "session": {
+    "session_id": "demo-session-123",
+    "domain": "example.com",
+    "cookies": {
+      "session": "abc123",
+      "user": "admin"
+    },
+    "headers": {
+      "Authorization": "Bearer token123"
+    },
+    "created_at": "2025-11-23T15:34:42.883957+00:00",
+    "expires_at": null
+  },
+  "metadata": {
+    "platform": "HackTheBox",
+    "difficulty": "Easy",
+    "category": "Web",
+    "points": 20
+  },
+  "created_at": "2025-11-23T15:34:42.881919+00:00",
+  "updated_at": "2025-11-23T15:34:42.884952+00:00"
+}

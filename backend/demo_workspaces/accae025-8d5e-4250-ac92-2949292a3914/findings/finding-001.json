@@ -1,0 +1,16 @@
+{
+  "finding_id": "finding-001",
+  "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+  "vulnerability_type": "SQL Injection",
+  "severity": "critical",
+  "title": "SQL Injection in login form",
+  "description": "The login form is vulnerable to SQL injection via the username parameter.",
+  "affected_url": "https://example.com/login",
+  "proof_of_concept": "Username: ' OR '1'='1' --\nPassword: anything",
+  "remediation": "Use parameterized queries or prepared statements.",
+  "discovered_at": "2025-11-23T15:34:42.884230+00:00",
+  "flags": [
+    "CTF{sql_injection_is_easy}"
+  ],
+  "evidence": []
+}

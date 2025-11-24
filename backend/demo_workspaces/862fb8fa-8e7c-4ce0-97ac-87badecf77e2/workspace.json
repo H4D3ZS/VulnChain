@@ -1,0 +1,15 @@
+{
+  "workspace_id": "862fb8fa-8e7c-4ce0-97ac-87badecf77e2",
+  "name": "CTFd - SQL Injection Challenge",
+  "target": null,
+  "findings": [],
+  "session": null,
+  "metadata": {
+    "platform": "CTFd",
+    "difficulty": "Medium",
+    "category": "Web",
+    "points": 50
+  },
+  "created_at": "2025-11-23T15:34:42.882883+00:00",
+  "updated_at": "2025-11-23T15:34:42.882885+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "finding_id": "finding-003",
+  "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+  "vulnerability_type": "Information Disclosure",
+  "severity": "medium",
+  "title": "Exposed .git directory",
+  "description": "The .git directory is publicly accessible.",
+  "affected_url": "https://example.com/.git/",
+  "proof_of_concept": "curl https://example.com/.git/config",
+  "remediation": "Block access to .git directory in web server configuration.",
+  "discovered_at": "2025-11-23T15:34:42.884949+00:00",
+  "flags": [],
+  "evidence": []
+}

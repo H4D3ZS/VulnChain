@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vulnchain-config
+  namespace: vulnchain
+data:
+  APP_NAME: "VulnChain"
+  APP_VERSION: "0.1.0"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  
+  # Database
+  POSTGRES_DB: "vulnchain"
+  POSTGRES_USER: "vulnchain"
+  
+  # Redis
+  REDIS_URL: "redis://redis:6379/0"
+  CELERY_BROKER_URL: "redis://redis:6379/1"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/2"
+  
+  # API
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  
+  # CORS
+  CORS_ORIGINS: "https://vulnchain.example.com"
+  
+  # JWT
+  JWT_ALGORITHM: "HS256"
+  JWT_EXPIRATION_MINUTES: "60"

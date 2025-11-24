@@ -1,0 +1,16 @@
+{
+  "finding_id": "finding-002",
+  "workspace_id": "accae025-8d5e-4250-ac92-2949292a3914",
+  "vulnerability_type": "XSS",
+  "severity": "high",
+  "title": "Reflected XSS in search parameter",
+  "description": "The search parameter reflects user input without sanitization.",
+  "affected_url": "https://example.com/search?q=<script>alert(1)</script>",
+  "proof_of_concept": "<script>alert(document.cookie)</script>",
+  "remediation": "Implement proper output encoding and Content Security Policy.",
+  "discovered_at": "2025-11-23T15:34:42.884606+00:00",
+  "flags": [
+    "CTF{xss_reflected}"
+  ],
+  "evidence": []
+}
