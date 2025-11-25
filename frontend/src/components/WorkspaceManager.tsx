@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getWorkspaces, createWorkspace, deleteWorkspace } from '../services/api'
+import { getWorkspaces, createWorkspace, deleteWorkspace, updateWorkspace } from '../services/api'
 
 interface Workspace {
   id: string
@@ -19,10 +19,43 @@ export default function WorkspaceManager() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null)
 
+  // Edit form state
+  const [editWorkspace, setEditWorkspace] = useState<Workspace | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editTargetUrl, setEditTargetUrl] = useState('')
+
   // Create form state
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newTargetUrl, setNewTargetUrl] = useState('')
+
+  // Handlers for edit modal
+  const handleEditOpen = (workspace: Workspace) => {
+    setEditWorkspace(workspace)
+    setEditName(workspace.name)
+    setEditDescription(workspace.description || '')
+    setEditTargetUrl(workspace.targetUrl || '')
+  }
+  const handleEditCancel = () => {
+    setEditWorkspace(null)
+  }
+  const handleEditSave = async () => {
+    if (!editWorkspace) return
+    try {
+      await updateWorkspace(editWorkspace.id, {
+        name: editName.trim(),
+        description: editDescription.trim() || undefined,
+        target_url: editTargetUrl.trim() || undefined,
+      })
+      await loadWorkspaces()
+      setEditWorkspace(null)
+      alert('Workspace updated successfully')
+    } catch (err: any) {
+      console.error('Failed to update workspace:', err)
+      alert(err.response?.data?.detail || 'Failed to update workspace')
+    }
+  }
 
   // Load workspaces from API
   useEffect(() => {
@@ -188,6 +221,13 @@ export default function WorkspaceManager() {
                           style={{ padding: 'var(--spacing-xs) var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}
                         >
                           View
+                        </button>
+                        <button
+                          className="secondary"
+                          onClick={() => handleEditOpen(workspace)}
+                          style={{ padding: 'var(--spacing-xs) var(--spacing-sm)', fontSize: 'var(--font-size-sm)' }}
+                        >
+                          Edit
                         </button>
                         <button
                           className="secondary"
@@ -383,6 +423,62 @@ export default function WorkspaceManager() {
                 </pre>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Workspace Modal */}
+      {editWorkspace && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 'var(--spacing-md)',
+            zIndex: 1000,
+          }}
+          onClick={handleEditCancel}
+        >
+          <div
+            className="card"
+            style={{ maxWidth: '600px', width: '100%', margin: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ marginBottom: 'var(--spacing-lg)' }}>Edit Workspace</h3>
+            <div>
+              <label>Name *</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Workspace name"
+              />
+            </div>
+            <div>
+              <label>Description</label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={3}
+                placeholder="Optional description"
+              />
+            </div>
+            <div>
+              <label>Target URL</label>
+              <input
+                type="url"
+                value={editTargetUrl}
+                onChange={(e) => setEditTargetUrl(e.target.value)}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-lg)' }}>
+              <button onClick={handleEditSave}>Save</button>
+              <button className="secondary" onClick={handleEditCancel}>Cancel</button>
+            </div>
           </div>
         </div>
       )}

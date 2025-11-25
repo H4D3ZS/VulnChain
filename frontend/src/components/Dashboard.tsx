@@ -58,7 +58,7 @@ export default function Dashboard() {
         <div className="card">
           <h3>🔧 Features</h3>
           <ul style={{ paddingLeft: '1.5rem', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
-            <li>25+ Attack Modules</li>
+            <li>52+ Attack Modules</li>
             <li>Automated Reconnaissance</li>
             <li>Injection Testing (SQL, XSS, etc.)</li>
             <li>API Exploitation</li>
@@ -154,7 +154,7 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-md)' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--font-size-2xl)', color: 'var(--accent-primary)', fontWeight: 'bold' }}>
-                25+
+                52+
               </div>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                 Attack Modules

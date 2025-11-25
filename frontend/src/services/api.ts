@@ -21,6 +21,7 @@ api.interceptors.request.use((config) => {
 // Workspaces
 export const getWorkspaces = () => api.get('/api/workspaces/')
 export const createWorkspace = (data: any) => api.post('/api/workspaces/', data)
+export const updateWorkspace = (id: string, data: any) => api.put(`/api/workspaces/${id}`, data)
 export const deleteWorkspace = (id: string) => api.delete(`/api/workspaces/${id}`)
 
 // Targets
@@ -37,7 +38,7 @@ export const getModuleExecutions = (targetId?: string) => {
   const params = targetId ? `?target_id=${targetId}` : ''
   return api.get(`/api/modules/executions${params}`)
 }
-export const getExecutionStatus = (executionId: string) => 
+export const getExecutionStatus = (executionId: string) =>
   api.get(`/api/modules/executions/${executionId}`)
 
 // Findings
@@ -53,7 +54,7 @@ export const createFinding = (data: any) => api.post('/api/findings/', data)
 export const getFinding = (id: string) => api.get(`/api/findings/${id}`)
 export const updateFinding = (id: string, data: any) => api.put(`/api/findings/${id}`, data)
 export const deleteFinding = (id: string) => api.delete(`/api/findings/${id}`)
-export const getFindingEvidence = (findingId: string) => 
+export const getFindingEvidence = (findingId: string) =>
   api.get(`/api/findings/${findingId}/evidence`)
 
 // Sessions

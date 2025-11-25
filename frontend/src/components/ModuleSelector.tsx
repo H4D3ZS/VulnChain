@@ -13,7 +13,7 @@ import { getModules, executeModule } from '../services/api'
 
 interface ModuleParameter {
   name: string
-  type: 'string' | 'number' | 'boolean' | 'select'
+  type: 'string' | 'number' | 'boolean' | 'select' | 'file'
   description: string
   required: boolean
   default?: any
@@ -28,6 +28,7 @@ interface Module {
   icon: string
   parameters: ModuleParameter[]
   estimatedTime?: string
+  guide?: string
 }
 
 export default function ModuleSelector() {
@@ -55,7 +56,8 @@ export default function ModuleSelector() {
         description: m.description,
         icon: getModuleIcon(m.module_id),
         parameters: m.parameters || [],
-        estimatedTime: m.estimated_time
+        estimatedTime: m.estimated_time,
+        guide: m.guide
       }))
       setModules(mappedModules)
     } catch (err) {
@@ -276,6 +278,14 @@ export default function ModuleSelector() {
               )}
             </div>
 
+            {/* Guide */}
+            {selectedModule.guide && (
+              <div className="module-guide">
+                <span className="guide-icon">💡</span>
+                <p>{selectedModule.guide}</p>
+              </div>
+            )}
+
             {/* Parameters */}
             <div className="modal-params">
               <h4>Configuration</h4>
@@ -333,6 +343,28 @@ export default function ModuleSelector() {
                             <option key={option} value={option}>{option}</option>
                           ))}
                         </select>
+                      )}
+
+                      {param.type === 'file' && (
+                        <div className="file-input-wrapper">
+                          <input
+                            type="file"
+                            accept=".txt"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const content = event.target?.result as string;
+                                  setParamValues({ ...paramValues, [param.name]: content });
+                                };
+                                reader.readAsText(file);
+                              }
+                            }}
+                            className="param-input"
+                          />
+                          <span className="file-help-text">Upload .txt file (one item per line)</span>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -604,6 +636,30 @@ export default function ModuleSelector() {
           margin-bottom: 1.5rem;
           font-size: 0.875rem;
           color: var(--text-secondary);
+        }
+        
+        .module-guide {
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
+          border-left: 4px solid var(--primary-color);
+          padding: 1rem;
+          border-radius: 0.5rem;
+          margin-bottom: 1.5rem;
+          display: flex;
+          gap: 0.75rem;
+          align-items: flex-start;
+        }
+
+        .guide-icon {
+          font-size: 1.25rem;
+          line-height: 1;
+        }
+
+        .module-guide p {
+          margin: 0;
+          font-size: 0.875rem;
+          color: var(--text-primary);
+          line-height: 1.5;
         }
         
         .meta-badge {
