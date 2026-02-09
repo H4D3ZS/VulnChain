@@ -6,7 +6,7 @@ An advanced CTF web exploitation framework designed for educational purposes, au
 
 ## Features
 
-### 🎯 25+ Attack Modules
+### 🎯 52+ Attack Modules
 - **Injection:** SQL, NoSQL, XSS, Command, SSRF, SSTI, XXE
 - **Authentication:** JWT manipulation, OAuth/SAML, Brute force
 - **File Attacks:** Directory traversal, File upload bypass

@@ -7,6 +7,8 @@ from typing import Dict, Optional, List, Any
 from datetime import datetime
 import uuid
 import io
+from app.api.targets import targets_db
+from app.models.target import TargetConfig
 
 router = APIRouter(prefix="/api/workspaces", tags=["workspaces"])
 
@@ -19,13 +21,6 @@ class WorkspaceCreate(BaseModel):
     metadata: Dict[str, Any] = {}
 
 
-class WorkspaceUpdate(BaseModel):
-    """Request model for updating a workspace"""
-    name: Optional[str] = None
-    description: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
 class WorkspaceResponse(BaseModel):
     """Response model for workspace"""
     workspace_id: str
@@ -36,6 +31,78 @@ class WorkspaceResponse(BaseModel):
     findings_count: int
     created_at: str
     updated_at: str
+
+# Update endpoint follows
+
+class WorkspaceUpdate(BaseModel):
+    """Request model for updating a workspace"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    target_url: Optional[str] = None
+@router.put("/{workspace_id}", response_model=WorkspaceResponse)
+async def update_workspace(workspace_id: str, workspace: WorkspaceUpdate):
+    """
+    Update a workspace.
+
+    Args:
+        workspace_id: Workspace ID
+        workspace: Updated workspace data
+
+    Returns:
+        Updated workspace
+    """
+    if workspace_id not in workspaces_db:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    ws = workspaces_db[workspace_id]
+
+    # Update fields
+    if workspace.name is not None:
+        ws["name"] = workspace.name
+    if workspace.description is not None:
+        ws["description"] = workspace.description
+    if workspace.metadata is not None:
+        ws["metadata"].update(workspace.metadata)
+    if workspace.target_url is not None:
+        ws["target_url"] = workspace.target_url
+        # Ensure a target exists for the new URL
+        try:
+            target_config = TargetConfig(
+                url=workspace.target_url,
+                name=f"{ws['name']} Target",
+                description=f"Target for workspace {ws['name']}"
+            )
+            # Find existing target ID or create new
+            existing_id = None
+            for tid, tconf in targets_db.items():
+                if tconf.url == workspace.target_url:
+                    existing_id = tid
+                    break
+            if existing_id:
+                targets_db[existing_id] = target_config
+            else:
+                new_tid = f"target-{len(targets_db) + 1}"
+                targets_db[new_tid] = target_config
+        except Exception:
+            # ignore errors to avoid failing workspace update
+            pass
+
+    ws["updated_at"] = datetime.now().isoformat()
+
+    return WorkspaceResponse(
+        workspace_id=ws["workspace_id"],
+        name=ws["name"],
+        description=ws["description"],
+        target_url=ws["target_url"],
+        metadata=ws["metadata"],
+        findings_count=len(ws.get("findings", [])),
+        created_at=ws["created_at"],
+        updated_at=ws["updated_at"]
+    )
+
+
+# Duplicate WorkspaceResponse definition removed
 
 
 # In-memory storage
@@ -67,6 +134,20 @@ async def create_workspace(workspace: WorkspaceCreate):
     }
     
     workspaces_db[workspace_id] = workspace_data
+    
+    # Automatically create target if URL is provided
+    if workspace.target_url:
+        try:
+            target_config = TargetConfig(
+                url=workspace.target_url,
+                name=f"{workspace.name} Target",
+                description=f"Target for workspace {workspace.name}"
+            )
+            target_id = f"target-{len(targets_db) + 1}"
+            targets_db[target_id] = target_config
+        except Exception:
+            # Ignore target creation errors to avoid failing workspace creation
+            pass
     
     return WorkspaceResponse(
         workspace_id=workspace_id,

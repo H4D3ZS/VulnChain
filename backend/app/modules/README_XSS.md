@@ -11,7 +11,7 @@ The XSS module provides automated testing for Cross-Site Scripting vulnerabiliti
 - **Obfuscation**: Case variation, null bytes, comments, string concatenation
 - **Filter Bypass**: Keyword filters, space filters, quote filters, parentheses filters
 - **Non-Standard Tags**: Marquee, details, video, audio, embed, object, math, svg
-- **Event Handlers**: 25+ event handlers including onload, onerror, onfocus, ontoggle
+- **Event Handlers**: 52+ event handlers including onload, onerror, onfocus, ontoggle
 - **PoC Generation**: Automatic proof-of-concept HTML and JavaScript generation
 
 ## Usage
